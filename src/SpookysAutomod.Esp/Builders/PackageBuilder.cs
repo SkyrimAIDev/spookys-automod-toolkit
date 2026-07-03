@@ -1335,24 +1335,25 @@ public class PackageBuilder
     /// <param name="radius">Radius around location (default: 500)</param>
     public PackageBuilder WithLocation(FormKey locationRef, uint radius = 500)
     {
-        // Add or update location data
-        var locationData = new PackageDataLocation
+        // Point the package's existing location entry at the caller's location. A location-based
+        // procedure (Sandbox, Wander, ...) already created a PackageDataLocation and linked it via
+        // its ProcedureTree branch, so we update that entry in place to keep the link intact.
+        //
+        // The previous code wrote a brand-new entry to Data[0] only when Data[0] was absent — but
+        // every As* method fills Data[0] first, so --location was silently ignored; and a fresh
+        // entry would be orphaned (no procedure branch references it).
+        foreach (var entry in _package.Data.Values)
         {
-            Name = "PackageLocation",
-            Location = new LocationTargetRadius
+            if (entry is PackageDataLocation locationData)
             {
-                Target = new LocationTarget
+                locationData.Location = new LocationTargetRadius
                 {
-                    Link = locationRef.ToLink<IPlacedGetter>()
-                },
-                Radius = radius
+                    Target = new LocationTarget { Link = locationRef.ToLink<IPlacedGetter>() },
+                    // Preserve the radius the As* method chose; fall back to the argument.
+                    Radius = (locationData.Location as LocationTargetRadius)?.Radius ?? radius
+                };
+                return this;
             }
-        };
-
-        // Add to data if not already present
-        if (!_package.Data.ContainsKey(0))
-        {
-            _package.Data[0] = locationData;
         }
 
         return this;
