@@ -578,9 +578,12 @@ public class SkseProjectService
         using var process = Process.Start(psi);
         if (process == null) return (-1, "Failed to start process");
 
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
+        // Read both streams concurrently to avoid a pipe-buffer deadlock.
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
 
         return (process.ExitCode, stdout + stderr);
     }

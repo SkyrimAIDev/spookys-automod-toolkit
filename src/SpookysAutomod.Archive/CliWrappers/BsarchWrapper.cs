@@ -136,9 +136,13 @@ public class BsarchWrapper
             if (process == null)
                 return Result<string>.Fail("Failed to start BSArch process");
 
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
+            // Read both streams concurrently to avoid a pipe-buffer deadlock: if the child fills
+            // the stderr buffer while we read stdout to EOF, neither side can proceed.
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
+            var output = await outputTask;
+            var error = await errorTask;
 
             if (process.ExitCode != 0)
             {
