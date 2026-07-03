@@ -55,7 +55,7 @@ public static class SkseCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else
             {
@@ -116,7 +116,7 @@ public static class SkseCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else
             {
@@ -167,7 +167,7 @@ public static class SkseCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else
             {
@@ -215,7 +215,7 @@ public static class SkseCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else
             {
@@ -284,7 +284,7 @@ public static class SkseCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else
             {

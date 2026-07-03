@@ -67,7 +67,7 @@ public static class AudioCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -139,7 +139,7 @@ public static class AudioCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -196,7 +196,7 @@ public static class AudioCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -248,7 +248,7 @@ public static class AudioCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!, suggestions: result.Suggestions).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!, suggestions: result.Suggestions));
                 }
             }
             else if (result.Success)
