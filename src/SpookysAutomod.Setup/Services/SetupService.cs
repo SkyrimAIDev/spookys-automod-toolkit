@@ -492,6 +492,7 @@ public class SetupService
 
     public async Task<(bool success, string message)> DownloadToolAsync(
         string owner, string repo, string assetPattern, string targetFolder,
+        string tag, string expectedSha256,
         IProgress<(int percent, string status)>? progress = null)
     {
         try
@@ -507,8 +508,8 @@ public class SetupService
 
             progress?.Report((10, "Fetching release info..."));
 
-            // Get latest release from GitHub
-            var apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
+            // Get the pinned release (by tag, not "latest") so the asset can't change out from under us.
+            var apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}";
             _httpClient.DefaultRequestHeaders.UserAgent.Clear();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("SpookysAutomodSetup/1.0");
 
@@ -561,6 +562,14 @@ public class SetupService
                         progress?.Report((pct, $"Downloading... {totalRead / 1024:N0} KB"));
                     }
                 }
+            }
+
+            // Verify integrity BEFORE extracting/executing the tool. Fail closed on any mismatch.
+            if (!SpookysAutomod.Core.Utilities.FileHash.VerifySha256(tempFile, expectedSha256))
+            {
+                var actualHash = SpookysAutomod.Core.Utilities.FileHash.Sha256(tempFile);
+                try { File.Delete(tempFile); } catch { /* best effort */ }
+                return (false, $"Integrity check failed for {assetName}: expected {expectedSha256}, got {actualHash}. The download was discarded.");
             }
 
             progress?.Report((90, "Extracting..."));

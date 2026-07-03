@@ -3,6 +3,7 @@ using System.Text;
 using SpookysAutomod.Core.Interfaces;
 using SpookysAutomod.Core.Logging;
 using SpookysAutomod.Core.Models;
+using SpookysAutomod.Core.Tools;
 
 namespace SpookysAutomod.Papyrus.CliWrappers;
 
@@ -73,11 +74,14 @@ public class ChampollionWrapper : ICliWrapper
     public async Task<Result> DownloadAsync()
     {
         // Champollion releases are on GitHub (single zip for all platforms)
+        var tool = PinnedTools.Champollion;
         var result = await _downloader.DownloadFromGitHubAsync(
-            "Orvid",
-            "Champollion",
-            "Champollion*.zip",  // Universal build
-            "champollion");
+            tool.Owner,
+            tool.Repo,
+            tool.AssetPattern,  // Universal build
+            "champollion",
+            tool.Tag,
+            tool.Sha256);
 
         return result.Success
             ? Result.Ok($"Downloaded to: {result.Value}")

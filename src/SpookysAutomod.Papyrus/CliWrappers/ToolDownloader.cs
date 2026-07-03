@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using SpookysAutomod.Core.Logging;
 using SpookysAutomod.Core.Models;
+using SpookysAutomod.Core.Utilities;
 
 namespace SpookysAutomod.Papyrus.CliWrappers;
 
@@ -46,7 +47,9 @@ public class ToolDownloader
         string owner,
         string repo,
         string assetPattern,
-        string targetFolder)
+        string targetFolder,
+        string tag,
+        string expectedSha256)
     {
         try
         {
@@ -61,8 +64,8 @@ public class ToolDownloader
 
             _logger.Info($"Downloading {owner}/{repo}...");
 
-            // Get latest release
-            var releaseUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
+            // Get the pinned release (by tag, not "latest") so the asset can't change out from under us.
+            var releaseUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}";
             var release = await _httpClient.GetFromJsonAsync<GitHubRelease>(releaseUrl);
 
             if (release?.Assets == null || release.Assets.Length == 0)
@@ -98,6 +101,22 @@ public class ToolDownloader
                 response.EnsureSuccessStatusCode();
                 await using var fs = File.Create(downloadPath);
                 await response.Content.CopyToAsync(fs);
+            }
+
+            // Verify integrity BEFORE extracting/executing the tool. Fail closed on any mismatch.
+            if (!FileHash.VerifySha256(downloadPath, expectedSha256))
+            {
+                var actual = FileHash.Sha256(downloadPath);
+                try { File.Delete(downloadPath); } catch { /* best effort */ }
+                return Result<string>.Fail(
+                    $"Integrity check failed for {asset.Name}",
+                    $"Expected SHA-256 {expectedSha256}, got {actual}",
+                    new List<string>
+                    {
+                        "The downloaded file does not match the pinned hash and was discarded.",
+                        "The upstream release may have changed, or the download was corrupted/tampered with.",
+                        "If the release was intentionally updated, bump the pinned tag and hash in PinnedTools."
+                    });
             }
 
             // Extract

@@ -3,6 +3,7 @@ using System.Text;
 using SpookysAutomod.Core.Interfaces;
 using SpookysAutomod.Core.Logging;
 using SpookysAutomod.Core.Models;
+using SpookysAutomod.Core.Tools;
 
 namespace SpookysAutomod.Papyrus.CliWrappers;
 
@@ -118,11 +119,14 @@ public class PapyrusCompilerWrapper : ICliWrapper
 
     public async Task<Result> DownloadAsync()
     {
+        var tool = PinnedTools.PapyrusCompiler;
         var result = await _downloader.DownloadFromGitHubAsync(
-            "russo-2025",
+            tool.Owner,
+            tool.Repo,
+            tool.AssetPattern,  // Windows build (tar.gz for other platforms)
             "papyrus-compiler",
-            "papyrus-compiler-windows.zip",  // Windows build (tar.gz for other platforms)
-            "papyrus-compiler");
+            tool.Tag,
+            tool.Sha256);
 
         return result.Success
             ? Result.Ok($"Downloaded to: {result.Value}")

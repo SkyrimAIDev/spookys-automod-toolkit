@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using SpookysAutomod.Core.Tools;
 using SpookysAutomod.Setup.Services;
 
 namespace SpookysAutomod.Setup.ViewModels;
@@ -417,10 +418,14 @@ public class SetupViewModel : INotifyPropertyChanged
         });
 
         var compilerTask = _service.DownloadToolAsync(
-            "russo-2025", "papyrus-compiler", "papyrus-compiler-windows.zip", "papyrus-compiler", compilerProgress);
+            PinnedTools.PapyrusCompiler.Owner, PinnedTools.PapyrusCompiler.Repo,
+            PinnedTools.PapyrusCompiler.AssetPattern, "papyrus-compiler",
+            PinnedTools.PapyrusCompiler.Tag, PinnedTools.PapyrusCompiler.Sha256, compilerProgress);
 
         var decompilerTask = _service.DownloadToolAsync(
-            "Orvid", "Champollion", "Champollion*.zip", "champollion", decompilerProgress);
+            PinnedTools.Champollion.Owner, PinnedTools.Champollion.Repo,
+            PinnedTools.Champollion.AssetPattern, "champollion",
+            PinnedTools.Champollion.Tag, PinnedTools.Champollion.Sha256, decompilerProgress);
 
         var skseTask = _service.SetupSkseHeadersAsync(skyrimPath, skseProgress);
 
