@@ -192,6 +192,44 @@ public class PluginServiceTests : IDisposable
     }
 
     [Fact]
+    public void CloneRecord_PreservesGlobalSubtypeAndAssignsNewFormKey()
+    {
+        // Regression: the old reflection copy coerced every cloned Global to Float and lost data.
+        var mod = new SkyrimMod(ModKey.FromFileName("CloneTest.esp"), SkyrimRelease.SkyrimSE);
+        var source = mod.Globals.AddNewInt();
+        source.EditorID = "SourceGlobal";
+        source.Data = 42;
+
+        var result = _service.CloneRecord(mod, "SourceGlobal", "ClonedGlobal");
+        Assert.True(result.Success, result.Error);
+
+        var cloned = mod.Globals.FirstOrDefault(g => g.EditorID == "ClonedGlobal");
+        Assert.NotNull(cloned);
+        Assert.IsType<GlobalInt>(cloned);                     // subtype preserved (not Float)
+        Assert.Equal(42, ((GlobalInt)cloned!).Data);          // data preserved
+        Assert.NotEqual(source.FormKey, cloned.FormKey);      // genuinely a new record
+    }
+
+    [Fact]
+    public void CloneRecord_PreservesGetOnlySubrecords()
+    {
+        // Regression: get-only collections (e.g. FormList.Items, spell Effects, keywords) were
+        // dropped because the reflection copy skipped non-writable properties.
+        var mod = new SkyrimMod(ModKey.FromFileName("CloneTest.esp"), SkyrimRelease.SkyrimSE);
+        var target = mod.Globals.AddNewInt("TargetGlobal");
+        var list = new FormListBuilder(mod, "SourceList").AddForm(target.FormKey).Build();
+        Assert.Single(list.Items);
+
+        var result = _service.CloneRecord(mod, "SourceList", "ClonedList");
+        Assert.True(result.Success);
+
+        var cloned = mod.FormLists.FirstOrDefault(f => f.EditorID == "ClonedList");
+        Assert.NotNull(cloned);
+        Assert.Single(cloned!.Items);                         // sub-record carried over
+        Assert.NotEqual(list.FormKey, cloned.FormKey);
+    }
+
+    [Fact]
     public void ViewRecord_ByBareHexFormId_FindsRecord()
     {
         // Regression: FindRecordByFormKey only parsed the "ID:ModKey" form and rejected a bare

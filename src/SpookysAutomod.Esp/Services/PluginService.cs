@@ -2904,53 +2904,31 @@ public class PluginService
         }
     }
 
-    private FormKey? AddCloneToGroup(SkyrimMod mod, IMajorRecord clone)
+    private static FormKey? AddCloneToGroup(SkyrimMod mod, IMajorRecord clone)
     {
-        // Mutagen's FormKey is immutable after creation, so we need to use
-        // the Duplicate method which creates a new record with a new FormKey
-        var newFormKey = mod.GetNextFormKey();
+        // Use Mutagen's native duplication: a deep copy with a fresh FormKey in one step.
+        // This preserves ALL sub-records (effects, keywords, and other get-only collections
+        // that the previous reflection property-copy silently dropped) and keeps the concrete
+        // subtype (e.g. a GlobalInt stays a GlobalInt instead of being coerced to Float).
+        // `clone` already carries the new EditorID, which the deep copy brings along.
         switch (clone)
         {
-            case Weapon w: var nw = mod.Weapons.AddNew(); CopyRecordFields(w, nw); nw.EditorID = clone.EditorID; return nw.FormKey;
-            case Armor a: var na = mod.Armors.AddNew(); CopyRecordFields(a, na); na.EditorID = clone.EditorID; return na.FormKey;
-            case Spell s: var ns = mod.Spells.AddNew(); CopyRecordFields(s, ns); ns.EditorID = clone.EditorID; return ns.FormKey;
-            case Quest q: var nq = mod.Quests.AddNew(); CopyRecordFields(q, nq); nq.EditorID = clone.EditorID; return nq.FormKey;
-            case Npc n: var nn = mod.Npcs.AddNew(); CopyRecordFields(n, nn); nn.EditorID = clone.EditorID; return nn.FormKey;
-            case Perk p: var np = mod.Perks.AddNew(); CopyRecordFields(p, np); np.EditorID = clone.EditorID; return np.FormKey;
-            case Faction f: var nf = new Faction(mod.GetNextFormKey(), SkyrimRelease.SkyrimSE); CopyRecordFields(f, nf); nf.EditorID = clone.EditorID; mod.Factions.Add(nf); return nf.FormKey;
-            case Book b: var nb = mod.Books.AddNew(); CopyRecordFields(b, nb); nb.EditorID = clone.EditorID; return nb.FormKey;
-            case Global g: var ng = mod.Globals.AddNewFloat(clone.EditorID ?? "Clone"); CopyRecordFields(g, ng); ng.EditorID = clone.EditorID; return ng.FormKey;
-            case LeveledItem li: var nli = mod.LeveledItems.AddNew(); CopyRecordFields(li, nli); nli.EditorID = clone.EditorID; return nli.FormKey;
-            case FormList fl: var nfl = mod.FormLists.AddNew(); CopyRecordFields(fl, nfl); nfl.EditorID = clone.EditorID; return nfl.FormKey;
-            case Outfit o: var no = mod.Outfits.AddNew(); CopyRecordFields(o, no); no.EditorID = clone.EditorID; return no.FormKey;
-            case Location l: var nl = mod.Locations.AddNew(); CopyRecordFields(l, nl); nl.EditorID = clone.EditorID; return nl.FormKey;
-            case EncounterZone ez: var nez = mod.EncounterZones.AddNew(); CopyRecordFields(ez, nez); nez.EditorID = clone.EditorID; return nez.FormKey;
-            case Package pk: var npk = mod.Packages.AddNew(); CopyRecordFields(pk, npk); npk.EditorID = clone.EditorID; return npk.FormKey;
+            case Weapon w: return mod.Weapons.DuplicateInAsNewRecord(w).FormKey;
+            case Armor a: return mod.Armors.DuplicateInAsNewRecord(a).FormKey;
+            case Spell s: return mod.Spells.DuplicateInAsNewRecord(s).FormKey;
+            case Quest q: return mod.Quests.DuplicateInAsNewRecord(q).FormKey;
+            case Npc n: return mod.Npcs.DuplicateInAsNewRecord(n).FormKey;
+            case Perk p: return mod.Perks.DuplicateInAsNewRecord(p).FormKey;
+            case Faction f: return mod.Factions.DuplicateInAsNewRecord(f).FormKey;
+            case Book b: return mod.Books.DuplicateInAsNewRecord(b).FormKey;
+            case Global g: return mod.Globals.DuplicateInAsNewRecord(g).FormKey;
+            case LeveledItem li: return mod.LeveledItems.DuplicateInAsNewRecord(li).FormKey;
+            case FormList fl: return mod.FormLists.DuplicateInAsNewRecord(fl).FormKey;
+            case Outfit o: return mod.Outfits.DuplicateInAsNewRecord(o).FormKey;
+            case Location l: return mod.Locations.DuplicateInAsNewRecord(l).FormKey;
+            case EncounterZone ez: return mod.EncounterZones.DuplicateInAsNewRecord(ez).FormKey;
+            case Package pk: return mod.Packages.DuplicateInAsNewRecord(pk).FormKey;
             default: return null;
-        }
-    }
-
-    /// <summary>
-    /// Copy writable properties from source to destination using reflection.
-    /// Skips FormKey and EditorID (set separately).
-    /// </summary>
-    private static void CopyRecordFields(IMajorRecord source, IMajorRecord dest)
-    {
-        var type = source.GetType();
-        foreach (var prop in type.GetProperties())
-        {
-            if (!prop.CanRead || !prop.CanWrite) continue;
-            if (prop.Name is "FormKey" or "EditorID") continue;
-
-            try
-            {
-                var value = prop.GetValue(source);
-                prop.SetValue(dest, value);
-            }
-            catch
-            {
-                // Skip properties that can't be copied (readonly, indexers, etc.)
-            }
         }
     }
 
