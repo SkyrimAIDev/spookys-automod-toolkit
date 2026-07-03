@@ -25,7 +25,7 @@ Skyrim modding traditionally requires the Creation Kit GUI, which is difficult f
 ```
 src/
 ├── SpookysAutomod.Core/        # Shared: Result<T>, logging, models
-├── SpookysAutomod.Cli/         # CLI commands (Spectre.Console)
+├── SpookysAutomod.Cli/         # CLI commands (System.CommandLine)
 ├── SpookysAutomod.Esp/         # Plugin manipulation (Mutagen)
 ├── SpookysAutomod.Papyrus/     # Script compilation/decompilation
 ├── SpookysAutomod.Archive/     # BSA/BA2 archive handling
@@ -42,11 +42,15 @@ src/
 
 ```csharp
 public class Result<T> {
-    public bool Success { get; set; }
-    public T? Data { get; set; }
-    public string? Error { get; set; }
-    public string? ErrorContext { get; set; }
-    public List<string>? Suggestions { get; set; }
+    public bool Success { get; init; }
+    public T? Value { get; init; }        // the payload — property is "Value", not "Data"
+    public string? Error { get; init; }
+    public string? ErrorContext { get; init; }
+    public List<string>? Suggestions { get; init; }
+
+    // Construct via the static factories (not `new`):
+    public static Result<T> Ok(T value);
+    public static Result<T> Fail(string error, string? context = null, List<string>? suggestions = null);
 }
 ```
 
@@ -144,9 +148,13 @@ dotnet test
 
    ```csharp
    // src/SpookysAutomod.Cli/Commands/EspCommands.cs
-   [Command("add-faction")]
-   public class AddFactionCommand : AsyncCommand<Settings> {
-       // Define settings, implement ExecuteAsync
+   // System.CommandLine style: build the Command in a factory method and
+   // register it in EspCommands.Create() via espCommand.AddCommand(...).
+   private static Command CreateAddFactionCommand() {
+       var cmd = new Command("add-faction", "Add a faction to a plugin");
+       // add Arguments/Options here, then:
+       cmd.SetHandler((/* bound args */) => { /* call PluginService, CliOutput.EmitJson(result) */ });
+       return cmd;
    }
    ```
 1. **Update Documentation**:
@@ -171,9 +179,9 @@ dotnet test
 // ✅ CORRECT - Return Result<T>
 public async Task<Result<string>> DoSomething() {
     try {
-        return Result<string>.Success(data);
+        return Result<string>.Ok(data);
     } catch (Exception ex) {
-        return Result<string>.Failure("Operation failed", ex.Message, suggestions);
+        return Result<string>.Fail("Operation failed", ex.Message, suggestions);
     }
 }
 
@@ -190,7 +198,7 @@ public void DoSomething() {
 
 ### JSON Serialization
 
-- Use Newtonsoft.Json (consistency)
+- Use System.Text.Json (consistency)
 - All commands support `--json` flag
 - Serialize `Result<T>` directly
 
@@ -213,7 +221,7 @@ var modKey = new ModKey("MyMod", ModType.Plugin); // Fragile
 ```csharp
 // ✅ Always check before compilation
 if (!Directory.Exists(headersPath)) {
-    return Result.Failure("Script headers not found", /* suggestions */);
+    return Result.Fail("Script headers not found", /* suggestions */);
 }
 ```
 
@@ -237,7 +245,7 @@ var result = await Cli.Wrap(toolPath)
     .ExecuteBufferedAsync();
 
 if (result.ExitCode != 0) {
-    return Result.Failure("Tool failed", result.StandardError, suggestions);
+    return Result.Fail("Tool failed", result.StandardError, suggestions);
 }
 ```
 
@@ -263,9 +271,9 @@ if (result.ExitCode != 0) {
 **Core Libraries:**
 
 - **Mutagen.Bethesda.Skyrim** - ESP/ESM manipulation
-- **Spectre.Console** - CLI framework
-- **NiflySharp** - 3D mesh handling
-- **Newtonsoft.Json** - JSON serialization
+- **System.CommandLine** - CLI framework
+- **System.Text.Json** - JSON serialization
+- NIF meshes are handled via the wrapped external `nif-tool` (see `Nif/CliWrappers/NifToolWrapper.cs`), not a NuGet library
 
 **External Tools (Auto-Downloaded):**
 

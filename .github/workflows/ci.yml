@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    # Windows runner: the Setup project targets net8.0-windows (WPF).
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore SpookysAutomod.sln
+
+      - name: Build
+        run: dotnet build SpookysAutomod.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/SpookysAutomod.Tests/SpookysAutomod.Tests.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Report vulnerable packages (informational)
+        run: dotnet list SpookysAutomod.sln package --vulnerable --include-transitive
