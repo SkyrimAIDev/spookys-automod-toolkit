@@ -522,6 +522,28 @@ public class BuilderTests
     }
 
     [Fact]
+    public void PackageBuilder_WithLocation_OverridesLocationTarget()
+    {
+        // Regression: WithLocation wrote to Data[0] only when empty, but every As* fills Data[0]
+        // first — so --location was a silent no-op. It must update the existing (already-linked)
+        // location entry the procedure references, preserving the As*-chosen radius.
+        var mod = CreateTestMod();
+        var locationKey = new FormKey(Mutagen.Bethesda.Skyrim.Constants.Skyrim, 0x00ABCD);
+
+        var package = new PackageBuilder(mod, "LocPackage")
+            .AsSandbox(750)
+            .WithLocation(locationKey)
+            .Build();
+
+        var locData = package.Data.Values.OfType<PackageDataLocation>().FirstOrDefault();
+        Assert.NotNull(locData);
+        var ltr = Assert.IsType<LocationTargetRadius>(locData!.Location);
+        var target = Assert.IsType<LocationTarget>(ltr.Target);
+        Assert.Equal(locationKey, target.Link.FormKey);   // location now points at the caller's ref
+        Assert.Equal(750u, ltr.Radius);                   // As*-chosen radius preserved
+    }
+
+    [Fact]
     public void PackageBuilder_AsTravel_SetsProcedureType()
     {
         var mod = CreateTestMod();
