@@ -799,11 +799,20 @@ public class SetupService
         using var process = Process.Start(psi);
         if (process == null) return (-1, "Failed to start process");
 
-        var output = process.StandardOutput.ReadToEnd();
-        var error = process.StandardError.ReadToEnd();
-        process.WaitForExit(60000);
+        // Read both streams concurrently so a full stderr buffer can't deadlock a blocking read of
+        // stdout. This also makes the 60s timeout reachable — the old sequential ReadToEnd() blocked
+        // before WaitForExit was ever called, so a hung child hung the wizard forever.
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
 
-        return (process.ExitCode, output + error);
+        if (!process.WaitForExit(60000))
+        {
+            try { process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            return (-1, "Process timed out after 60 seconds");
+        }
+
+        Task.WaitAll(outputTask, errorTask);
+        return (process.ExitCode, outputTask.Result + errorTask.Result);
     }
 
     #endregion
