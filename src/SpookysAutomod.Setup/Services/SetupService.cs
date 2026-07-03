@@ -138,6 +138,16 @@ public class SetupService
         {
             var targetLink = Path.Combine(ToolkitRoot, "skyrim-script-headers");
 
+            // Guard against command injection: targetLink and scriptSourceDir are interpolated into
+            // the cmd.exe command line below (mklink is a cmd builtin, so cmd is required). A double
+            // quote or control character in the path could break out of the quoted argument and run
+            // arbitrary commands. Such characters are illegal in Windows paths, so reject them.
+            if (SpookysAutomod.Core.Utilities.PathValidation.ContainsCommandLineUnsafeChars(scriptSourceDir) ||
+                SpookysAutomod.Core.Utilities.PathValidation.ContainsCommandLineUnsafeChars(targetLink))
+            {
+                return (false, "Path contains invalid characters (quotes or control characters) and cannot be linked.");
+            }
+
             // Remove existing directory/link if it exists
             if (Directory.Exists(targetLink))
             {
