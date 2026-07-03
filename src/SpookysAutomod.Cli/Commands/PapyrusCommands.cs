@@ -47,7 +47,7 @@ public static class PapyrusCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -149,7 +149,7 @@ public static class PapyrusCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions));
                 }
             }
             else if (result.Success)
@@ -225,7 +225,7 @@ public static class PapyrusCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions));
                 }
             }
             else if (result.Success)
@@ -289,7 +289,7 @@ public static class PapyrusCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions));
                 }
             }
             else if (result.Success)
@@ -351,10 +351,12 @@ public static class PapyrusCommands
                             warnings = result.Value.Warnings
                         }
                     }.ToJson());
+                    // Match non-JSON behavior: an invalid script is a non-zero exit.
+                    if (!result.Value!.IsValid) Environment.ExitCode = 1;
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)

@@ -25,4 +25,9 @@ rootCommand.AddCommand(AudioCommands.Create(jsonOption, verboseOption));
 rootCommand.AddCommand(SkseCommands.Create(jsonOption, verboseOption));
 
 // Run
-return await rootCommand.InvokeAsync(args);
+// InvokeAsync returns System.CommandLine's own exit code (non-zero on parse errors or
+// unhandled exceptions). On normal completion it returns 0, which would otherwise override
+// any Environment.ExitCode a handler set to signal a failed operation (e.g. in --json mode).
+// Honor the handler-set code when the invocation itself succeeded.
+var invokeExitCode = await rootCommand.InvokeAsync(args);
+return invokeExitCode != 0 ? invokeExitCode : Environment.ExitCode;

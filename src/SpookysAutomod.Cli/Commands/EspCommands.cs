@@ -97,7 +97,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -132,7 +132,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -255,7 +255,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -399,7 +399,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -509,7 +509,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -608,7 +608,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -702,7 +702,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -808,7 +808,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -904,7 +904,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1073,7 +1073,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -1201,7 +1201,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1331,7 +1331,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1425,7 +1425,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1517,7 +1517,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1638,7 +1638,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -1680,7 +1680,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(new { success = result.Success, result = new { masters = result.Value?.MasterFiles }, error = result.Error }.ToJson());
+                CliOutput.EmitJson(new { success = result.Success, result = new { masters = result.Value?.MasterFiles }, error = result.Error }, success: result.Success);
             }
             else if (result.Success && result.Value != null)
             {
@@ -1738,7 +1738,7 @@ public static class EspCommands
             var saveResult = service.SavePlugin(targetMod, output ?? target);
 
             if (json)
-                Console.WriteLine(new { success = saveResult.Success, result = new { recordsCopied, outputPath = output ?? target }, error = saveResult.Error }.ToJson());
+                CliOutput.EmitJson(new { success = saveResult.Success, result = new { recordsCopied, outputPath = output ?? target }, error = saveResult.Error }, success: saveResult.Success);
             else if (saveResult.Success)
                 Console.WriteLine($"Merged {recordsCopied} records from {source} into {output ?? target}");
             else
@@ -1771,7 +1771,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -1880,7 +1880,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -1968,7 +1968,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -2165,7 +2165,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -2271,7 +2271,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -2384,7 +2384,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -2533,7 +2533,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -2665,7 +2665,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -2689,7 +2689,7 @@ public static class EspCommands
     {
         if (json)
         {
-            Console.WriteLine(Result.Fail(error, suggestions: suggestions?.ToList()).ToJson(true));
+            CliOutput.EmitJson(Result.Fail(error, suggestions: suggestions?.ToList()));
         }
         else
         {
@@ -2730,7 +2730,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -2830,7 +2830,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -2883,7 +2883,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -2949,7 +2949,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(result.ToJson(true));
+                    CliOutput.EmitJson(result);
                 }
             }
             else if (result.Success && result.Value != null)
@@ -3023,7 +3023,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -3080,7 +3080,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -3154,7 +3154,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -3222,7 +3222,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success && result.Value != null)
             {
@@ -3323,7 +3323,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -3390,7 +3390,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -3600,7 +3600,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -3652,7 +3652,7 @@ public static class EspCommands
 
             if (json)
             {
-                Console.WriteLine(result.ToJson(true));
+                CliOutput.EmitJson(result);
             }
             else if (result.Success)
             {
@@ -3735,7 +3735,7 @@ public static class EspCommands
                     Console.WriteLine(new { success = true, result = new { editorId, removed = true } }.ToJson());
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }
@@ -3824,7 +3824,7 @@ public static class EspCommands
                 }
                 else
                 {
-                    Console.WriteLine(new { success = false, error = saveResult.Error }.ToJson());
+                    CliOutput.EmitJson(new { success = false, error = saveResult.Error }, success: false);
                     Environment.ExitCode = 1;
                 }
             }

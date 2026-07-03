@@ -43,10 +43,13 @@ public class Result<T>
 
     public string ToJson(bool indented = false)
     {
+        // Use WhenWritingNull (not WhenWritingDefault) so that "success": false is always
+        // emitted on failed results. The Value property opts into WhenWritingDefault via its
+        // own attribute, so it is still omitted when null/default.
         var options = new JsonSerializerOptions
         {
             WriteIndented = indented,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
         return JsonSerializer.Serialize(this, options);
     }

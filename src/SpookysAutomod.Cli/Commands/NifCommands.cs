@@ -72,7 +72,7 @@ public static class NifCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -133,7 +133,7 @@ public static class NifCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -185,7 +185,7 @@ public static class NifCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -217,7 +217,7 @@ public static class NifCommands
             if (result.Success)
                 Console.WriteLine(Result<object>.Ok(new { output = result.Value!.Output, dryRun = result.Value.DryRun }).ToJson(true));
             else
-                Console.WriteLine(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions).ToJson(true));
+                CliOutput.EmitJson(Result.Fail(result.Error!, result.ErrorContext, result.Suggestions));
         }
         else if (result.Success)
         {

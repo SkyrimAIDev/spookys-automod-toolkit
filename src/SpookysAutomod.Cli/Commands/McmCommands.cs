@@ -67,7 +67,7 @@ public static class McmCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -124,7 +124,7 @@ public static class McmCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -188,7 +188,7 @@ public static class McmCommands
                 }
                 else
                 {
-                    Console.WriteLine(Result.Fail(result.Error!).ToJson(true));
+                    CliOutput.EmitJson(Result.Fail(result.Error!));
                 }
             }
             else if (result.Success)
@@ -349,7 +349,7 @@ public static class McmCommands
     {
         if (json)
         {
-            Console.WriteLine(Result.Fail(error).ToJson(true));
+            CliOutput.EmitJson(Result.Fail(error));
         }
         else
         {
