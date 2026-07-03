@@ -1260,13 +1260,14 @@ public class PluginService
     {
         try
         {
-            if (!Mutagen.Bethesda.Plugins.FormKey.TryFactory(formKeyStr, out var formKey))
+            if (!TryParseFormKey(mod, formKeyStr, out var formKey))
             {
                 return Result<IMajorRecordGetter>.Fail(
                     $"Invalid FormKey format: {formKeyStr}",
                     suggestions: new List<string>
                     {
-                        "Use format: 0x000800 or PluginName.esp:0x000800",
+                        "Use a bare FormID like 0x000800 (resolved against this plugin)",
+                        "or the fully-qualified form 000800:PluginName.esp",
                         "Use --editor-id if you know the EditorID instead"
                     });
             }
@@ -1291,6 +1292,33 @@ public class PluginService
         {
             return Result<IMajorRecordGetter>.Fail($"Error finding record: {ex.Message}", ex.StackTrace);
         }
+    }
+
+    /// <summary>
+    /// Parse a FormKey from either the fully-qualified Mutagen form "ID:ModKey"
+    /// (e.g. 000800:MyMod.esp) or a bare hex object id (e.g. 0x000800, 000800),
+    /// which is resolved against the supplied plugin's own ModKey.
+    /// </summary>
+    private static bool TryParseFormKey(ISkyrimModGetter mod, string input, out FormKey formKey)
+    {
+        formKey = default;
+        if (string.IsNullOrWhiteSpace(input)) return false;
+        input = input.Trim();
+
+        // Fully-qualified "ID:ModKey" form (e.g. 000800:MyMod.esp).
+        if (input.Contains(':'))
+            return FormKey.TryFactory(input, out formKey);
+
+        // Bare hex object id (with or without 0x), resolved against this plugin's own ModKey.
+        var hex = input.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? input.Substring(2)
+            : input;
+        if (uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var id))
+        {
+            formKey = new FormKey(mod.ModKey, id & 0x00FFFFFF);
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
