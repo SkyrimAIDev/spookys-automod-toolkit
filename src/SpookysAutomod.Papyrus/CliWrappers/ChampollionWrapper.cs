@@ -107,7 +107,17 @@ public class ChampollionWrapper : ICliWrapper
             return Result<DecompileResult>.Fail($"PEX file not found: {pexPath}");
         }
 
-        Directory.CreateDirectory(outputDir);
+        try
+        {
+            Directory.CreateDirectory(outputDir);
+        }
+        catch (Exception ex)
+        {
+            return Result<DecompileResult>.Fail(
+                $"Could not create output directory: {outputDir}",
+                ex.Message,
+                new List<string> { "Check the output path is valid and writable" });
+        }
 
         // Build arguments
         var args = new StringBuilder();
@@ -160,7 +170,18 @@ public class ChampollionWrapper : ICliWrapper
                 suggestions: new List<string> { "Check the directory contains compiled scripts" });
         }
 
-        Directory.CreateDirectory(outputDir);
+        try
+        {
+            Directory.CreateDirectory(outputDir);
+        }
+        catch (Exception ex)
+        {
+            return Result<DecompileResult>.Fail(
+                $"Could not create output directory: {outputDir}",
+                ex.Message,
+                new List<string> { "Check the output path is valid and writable" });
+        }
+
         var decompiled = 0;
         var errors = new List<string>();
 

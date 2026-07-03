@@ -228,4 +228,32 @@ public class PluginServiceTests : IDisposable
         Assert.Single(cloned!.Items);                         // sub-record carried over
         Assert.NotEqual(list.FormKey, cloned.FormKey);
     }
+
+    [Fact]
+    public void ViewRecord_ByBareHexFormId_FindsRecord()
+    {
+        // Regression: FindRecordByFormKey only parsed the "ID:ModKey" form and rejected a bare
+        // hex FormID like 0x000800, even though --form-id documents exactly that.
+        var mod = new SkyrimMod(ModKey.FromFileName("FormIdTest.esp"), SkyrimRelease.SkyrimSE);
+        var weapon = new WeaponBuilder(mod, "TestSword").Build();
+        var path = Path.Combine(_tempDir, "FormIdTest.esp");
+        mod.WriteToBinary(path);
+
+        var id = weapon.FormKey.ID;
+
+        // Bare hex, with 0x prefix.
+        var withPrefix = _service.ViewRecord(path, null, "0x" + id.ToString("X6"), null);
+        Assert.True(withPrefix.Success);
+        Assert.Equal("TestSword", withPrefix.Value!.EditorId);
+
+        // Bare hex, no prefix.
+        var noPrefix = _service.ViewRecord(path, null, id.ToString("X6"), null);
+        Assert.True(noPrefix.Success);
+        Assert.Equal("TestSword", noPrefix.Value!.EditorId);
+
+        // Fully-qualified ID:ModKey form still works.
+        var qualified = _service.ViewRecord(path, null, $"{id:X6}:FormIdTest.esp", null);
+        Assert.True(qualified.Success);
+        Assert.Equal("TestSword", qualified.Value!.EditorId);
+    }
 }
