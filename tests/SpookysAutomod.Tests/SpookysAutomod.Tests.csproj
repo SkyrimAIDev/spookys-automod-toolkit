@@ -13,6 +13,11 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <!-- Pin patched versions to override vulnerable transitive dependencies (test-only):
+         System.Net.Http 4.3.0 (GHSA-7jgj-8wvc-jh57), System.Text.RegularExpressions 4.3.0
+         (GHSA-cmhx-cq75-c4mj). Harmless on net8.0 (in-box), satisfies the vulnerability scan. -->
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
