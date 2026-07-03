@@ -325,7 +325,19 @@ public class PapyrusService
             return Result<ValidationResult>.Fail($"File not found: {pscPath}");
         }
 
-        var content = File.ReadAllText(pscPath);
+        string content;
+        try
+        {
+            content = File.ReadAllText(pscPath);
+        }
+        catch (Exception ex)
+        {
+            return Result<ValidationResult>.Fail(
+                $"Failed to read script: {ex.Message}",
+                ex.StackTrace,
+                new List<string> { "Ensure the file is readable and not locked by another process" });
+        }
+
         var errors = new List<string>();
         var warnings = new List<string>();
 

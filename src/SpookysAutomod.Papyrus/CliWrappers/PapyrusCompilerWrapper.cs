@@ -154,7 +154,17 @@ public class PapyrusCompilerWrapper : ICliWrapper
             return Result<CompileResult>.Fail($"Source not found: {source}");
         }
 
-        Directory.CreateDirectory(outputDir);
+        try
+        {
+            Directory.CreateDirectory(outputDir);
+        }
+        catch (Exception ex)
+        {
+            return Result<CompileResult>.Fail(
+                $"Could not create output directory: {outputDir}",
+                ex.Message,
+                new List<string> { "Check the output path is valid and writable" });
+        }
 
         // Build import directories list
         var imports = new List<string>();
