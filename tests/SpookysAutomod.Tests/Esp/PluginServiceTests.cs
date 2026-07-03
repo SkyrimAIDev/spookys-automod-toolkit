@@ -1,4 +1,7 @@
+using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Skyrim;
 using SpookysAutomod.Core.Logging;
+using SpookysAutomod.Esp.Builders;
 using SpookysAutomod.Esp.Services;
 
 namespace SpookysAutomod.Tests.Esp;
@@ -135,5 +138,56 @@ public class PluginServiceTests : IDisposable
         // Should indicate no start-enabled quests found
         Assert.False(seqResult.Success);
         Assert.Contains("start-enabled", seqResult.Error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CreatePlugin_IntoNonExistentDirectory_CreatesDirectoryAndFile()
+    {
+        // Regression: outputPath is the target directory. The previous code created the parent
+        // of outputPath, so writing into a not-yet-existing folder failed.
+        var newDir = Path.Combine(_tempDir, "new", "nested", "folder");
+        Assert.False(Directory.Exists(newDir));
+
+        var result = _service.CreatePlugin("NestedMod.esp", newDir);
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.Value);
+        Assert.True(File.Exists(result.Value));
+        Assert.True(Directory.Exists(newDir));
+    }
+
+    [Fact]
+    public void GetPluginInfo_DisposesOverlay_SourceFileCanBeDeleted()
+    {
+        // Regression: the read-only overlay is memory-mapped and IDisposable. If it is not
+        // disposed, the source file stays locked. Deleting it here proves the overlay was released.
+        var createResult = _service.CreatePlugin("Disposable.esp", _tempDir);
+        Assert.True(createResult.Success);
+        var path = createResult.Value!;
+
+        var info = _service.GetPluginInfo(path);
+        Assert.True(info.Success);
+
+        File.Delete(path); // throws IOException if the overlay still holds the file
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public void GenerateSeqFile_WithStartEnabledQuest_WritesRawFormIdsWithoutCountPrefix()
+    {
+        // Regression: a .seq file is a raw little-endian list of 4-byte quest FormIDs with no
+        // count/header prefix. The previous code prepended a uint count, corrupting the file.
+        var mod = new SkyrimMod(ModKey.FromFileName("SeqTest.esp"), SkyrimRelease.SkyrimSE);
+        var quest = new QuestBuilder(mod, "SeqQuest").StartEnabled().Build();
+        var pluginPath = Path.Combine(_tempDir, "SeqTest.esp");
+        mod.WriteToBinary(pluginPath);
+
+        var seqResult = _service.GenerateSeqFile(pluginPath, _tempDir);
+        Assert.True(seqResult.Success);
+
+        var bytes = File.ReadAllBytes(seqResult.Value!);
+        // Exactly one 4-byte FormID — no leading count word.
+        Assert.Equal(4, bytes.Length);
+        Assert.Equal(quest.FormKey.ID, BitConverter.ToUInt32(bytes, 0));
     }
 }

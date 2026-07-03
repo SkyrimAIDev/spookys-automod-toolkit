@@ -61,16 +61,19 @@ public class PluginService
                 mod.ModHeader.Description = description;
             }
 
-            // Ensure output directory exists
-            var dir = Path.GetDirectoryName(outputPath);
+            var fullPath = Path.IsPathRooted(outputPath)
+                ? Path.Combine(outputPath, name)
+                : Path.Combine(Directory.GetCurrentDirectory(), outputPath, name);
+
+            // Ensure the output directory exists. outputPath is the target *directory*, so the
+            // directory to create is Path.GetDirectoryName(fullPath) (== the resolved outputPath).
+            // The previous code created Path.GetDirectoryName(outputPath) — the *parent* of the
+            // target directory — so writing into a not-yet-existing folder failed.
+            var dir = Path.GetDirectoryName(fullPath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
             }
-
-            var fullPath = Path.IsPathRooted(outputPath)
-                ? Path.Combine(outputPath, name)
-                : Path.Combine(Directory.GetCurrentDirectory(), outputPath, name);
 
             mod.WriteToBinary(fullPath);
 
@@ -214,7 +217,7 @@ public class PluginService
                 return Result<PluginInfo>.Fail($"Plugin not found: {path}");
             }
 
-            var mod = SkyrimMod.CreateFromBinaryOverlay(path, SkyrimRelease.SkyrimSE);
+            using var mod = SkyrimMod.CreateFromBinaryOverlay(path, SkyrimRelease.SkyrimSE);
             var fileInfo = new FileInfo(path);
 
             var info = new PluginInfo
@@ -275,7 +278,7 @@ public class PluginService
                 return Result<string>.Fail($"Plugin not found: {pluginPath}");
             }
 
-            var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+            using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
             var startEnabledQuests = new List<uint>();
 
             foreach (var quest in mod.Quests)
@@ -306,9 +309,11 @@ public class PluginService
             var seqFileName = Path.GetFileNameWithoutExtension(mod.ModKey.FileName) + ".seq";
             var seqPath = Path.Combine(outputDir, seqFileName);
 
-            // Write SEQ file (simple format: count + FormIDs)
+            // Write SEQ file. The format is a raw little-endian list of 4-byte quest FormIDs
+            // with NO count/header prefix — the game reads entries until EOF. The previous code
+            // wrote a uint count first, which the engine misread as the first quest's FormID,
+            // shifting every entry and breaking start-game-enabled quest resolution.
             using var writer = new BinaryWriter(File.Create(seqPath));
-            writer.Write((uint)startEnabledQuests.Count);
             foreach (var formId in startEnabledQuests)
             {
                 writer.Write(formId);
@@ -348,7 +353,7 @@ public class PluginService
                     });
             }
 
-            var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+            using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? record = null;
 
@@ -1692,7 +1697,7 @@ public class PluginService
                     });
             }
 
-            var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
+            using var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? sourceRecord = null;
 
@@ -1954,7 +1959,7 @@ public class PluginService
             {
                 try
                 {
-                    var mod = SkyrimMod.CreateFromBinaryOverlay(plugin, SkyrimRelease.SkyrimSE);
+                    using var mod = SkyrimMod.CreateFromBinaryOverlay(plugin, SkyrimRelease.SkyrimSE);
                     var pluginName = Path.GetFileName(plugin);
 
                     IEnumerable<IMajorRecordGetter> recordsToSearch = mod.EnumerateMajorRecords();
@@ -2034,7 +2039,7 @@ public class PluginService
                 return Result<BatchOverrideResult>.Fail($"Source plugin not found: {sourcePluginPath}");
             }
 
-            var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
+            using var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
 
             if (!outputPluginName.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) &&
                 !outputPluginName.EndsWith(".esl", StringComparison.OrdinalIgnoreCase))
@@ -2179,8 +2184,8 @@ public class PluginService
                 return Result<RecordComparison>.Fail($"Plugin 2 not found: {plugin2Path}");
             }
 
-            var mod1 = SkyrimMod.CreateFromBinaryOverlay(plugin1Path, SkyrimRelease.SkyrimSE);
-            var mod2 = SkyrimMod.CreateFromBinaryOverlay(plugin2Path, SkyrimRelease.SkyrimSE);
+            using var mod1 = SkyrimMod.CreateFromBinaryOverlay(plugin1Path, SkyrimRelease.SkyrimSE);
+            using var mod2 = SkyrimMod.CreateFromBinaryOverlay(plugin2Path, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? record1 = null;
             IMajorRecordGetter? record2 = null;
@@ -2330,7 +2335,7 @@ public class PluginService
             {
                 try
                 {
-                    var mod = SkyrimMod.CreateFromBinaryOverlay(plugin, SkyrimRelease.SkyrimSE);
+                    using var mod = SkyrimMod.CreateFromBinaryOverlay(plugin, SkyrimRelease.SkyrimSE);
 
                     bool hasRecord = false;
 
@@ -2443,7 +2448,7 @@ public class PluginService
                 return Result<List<ConditionInfo>>.Fail($"Plugin not found: {pluginPath}");
             }
 
-            var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+            using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? record = null;
 
@@ -2497,7 +2502,7 @@ public class PluginService
                 return Result<string>.Fail($"Source plugin not found: {sourcePluginPath}");
             }
 
-            var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
+            using var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? sourceRecord = null;
 
@@ -2610,7 +2615,7 @@ public class PluginService
                 return Result<string>.Fail($"Source plugin not found: {sourcePluginPath}");
             }
 
-            var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
+            using var sourceMod = SkyrimMod.CreateFromBinaryOverlay(sourcePluginPath, SkyrimRelease.SkyrimSE);
 
             IMajorRecordGetter? sourceRecord = null;
 
